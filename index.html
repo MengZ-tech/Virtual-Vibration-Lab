@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Interactive Pulse Train Lab</title>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root { --bg:#f6f5f3; --panel:#ffffff; --ink:#1f2937; --muted:#6b7280; --accent:#3b82f6; --accent-weak:#93c5fd; --line:#e5e7eb; --success:#10b981; --danger:#ef4444; --shadow:0 10px 30px rgba(0,0,0,0.08); --radius:16px; }
+    *{box-sizing:border-box} html,body{height:100%}
+    body{margin:0;background:var(--bg);color:var(--ink);font-family:'Inter',system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;letter-spacing:.1px}
+    header{position:sticky;top:0;z-index:5;display:flex;align-items:center;justify-content:space-between;padding:14px 18px;background:rgba(246,245,243,.75);backdrop-filter:blur(6px);border-bottom:1px solid var(--line)}
+    header .title{font-weight:600;font-size:18px} header .actions{display:flex;gap:8px}
+    .btn{appearance:none;border:1px solid var(--line);background:var(--panel);color:var(--ink);padding:8px 12px;border-radius:10px;cursor:pointer;transition:.2s ease;box-shadow:0 1px 0 rgba(0,0,0,0.04)}
+    .btn:hover{transform:translateY(-1px);box-shadow:var(--shadow)} .btn.primary{background:var(--accent);color:#fff;border-color:var(--accent)} .btn.ghost{background:transparent}
+    .layout{display:grid;grid-template-columns:380px 1fr;gap:16px;padding:16px}
+    .panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow)}
+    .panel h3{margin:0 0 10px;font-size:14px;color:var(--muted);font-weight:600;letter-spacing:.3px}
+    .row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;align-items:center}
+    .row>label{font-size:12px;color:var(--muted)} .row .input{display:flex;gap:8px;align-items:center}
+    .row input[type=number],.row select{width:100%;padding:8px 10px;border-radius:10px;border:1px solid var(--line);background:#fff;color:var(--ink)}
+    .switch{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted)} .section{margin:12px 0;padding-top:8px;border-top:1px dashed var(--line)} .micro{font-size:11px;color:var(--muted)}
+    canvas.editor{width:100%;height:110px;display:block;border-radius:12px;background:linear-gradient(0deg,#f8fafc,#fff);border:1px solid var(--line);cursor:crosshair}
+    .legend{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:8px}
+    .dot{width:10px;height:10px;border-radius:50%;display:inline-block} .dot.primary{background:var(--accent)} .dot.green{background:var(--success)} .dot.gray{background:#9ca3af}
+    .kpi{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px} .kpi .card{background:#fafafa;border:1px solid var(--line);border-radius:12px;padding:8px 10px} .kpi .label{font-size:11px;color:var(--muted)} .kpi .value{font-size:14px;font-weight:600}
+    .plots{display:grid;grid-template-columns:1fr;gap:16px} @media (min-width:1100px){.plots{grid-template-columns:1fr 1fr}}
+    .plot{height:320px;border:1px solid var(--line);border-radius:var(--radius);background:#fff;position:relative;overflow:hidden}
+    .placeholder{position:absolute;inset:0;display:grid;place-items:center;color:var(--muted);font-size:13px;background:repeating-linear-gradient(45deg,#fafafa,#fafafa 10px,#ffffff 10px,#ffffff 20px)}
+    footer{text-align:center;color:var(--muted);font-size:12px;padding:8px 0 20px}
+    .pill{font-size:11px;padding:4px 8px;background:#eef2ff;color:#3730a3;border-radius:999px;border:1px solid #e0e7ff}
+    .inline{display:inline-flex;gap:8px;align-items:center} .badge{font-size:11px;padding:2px 6px;border-radius:999px;border:1px solid var(--line);color:var(--muted)}
+/* —— 左侧面板紧凑化 —— */
+#controls { --pad:12px; }
+#controls.panel { padding: var(--pad); }
+
+/* 标题与段落间距更紧凑 */
+#controls .panel h3 { margin: 0 0 7px; }
+
+/* 每行高度、间距缩小 */
+#controls .row { gap: 8px; margin-bottom: 10px; }
+
+/* 分区上下间距缩小、虚线顶边更靠近 */
+#controls .section { margin: 10px 0; padding-top: 8px; }
+
+/* 标签和输入更紧凑 */
+#controls .row>label { font-size: 11px; }
+#controls .row input[type=number],
+#controls .row select {
+  padding: 8px 10px;     
+  border-radius: 10px;    
+}
+
+/* 开关行 */
+#controls .switch { gap: 6px; font-size: 11px; }
+/* 说明/徽章*/
+#controls .legend { margin-top: 6px; gap: 8px; }
+.badge { font-size: 10px; padding: 2px 6px; }
+/* KPI 卡片 */
+#controls .kpi { gap: 6px; margin-top: 6px; }
+#controls .kpi .card { padding: 6px 8px; border-radius: 10px; }
+#controls .kpi .label { font-size: 10px; }
+#controls .kpi .value { font-size: 13px; }
+/* 左侧两块编辑画布高度*/
+#controls canvas.editor { height: 90px; }
+/* 顶部 */
+header { padding: 10px 14px; }
+/* 底部特征面板的格子更自适应 */
+.kpi-wide {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  gap: 8px;
+}
+.kpi-wide .card { background:#fafafa; border:1px solid var(--line); border-radius:12px; padding:8px 10px; }
+.kpi-wide .label { font-size:11px; color:var(--muted); }
+.kpi-wide .value { font-size:14px; font-weight:600; }
+/* plots容器保持原有网格，但让 featurePanel 占整行 */
+.plots { display:grid; grid-template-columns:1fr; gap:16px; }
+@media (min-width:1100px){ .plots{ grid-template-columns:1fr 1fr; } }
+
+
+  </style>
+</head>
+<body>
+  <header>
+    <div class="title">Virtual Lab: Pulse Train <span id="testBadge" class="badge">Tests: pending</span></div>
+    <div class="actions">
+      <button class="btn" id="btnReset" disabled>reset</button>
+      <button class="btn ghost" id="btnExport" disabled>save as CSV</button>
+    </div>
+  </header>
+
+  <main class="layout">
+    <aside class="panel" id="controls" aria-busy="true" aria-disabled="true">
+      <h3>global setting</h3>
+      <div class="row"><label>sample freq Fs (Hz)</label><div class="input"><input type="number" id="fs" value="2500" step="1" min="10" disabled></div></div>
+      <div class="row"><label>time duriation T (s)</label><div class="input"><input type="number" id="duration" value="2" step="0.1" min="0.1" disabled></div></div>
+      <div class="row"><label>natural frequency f₀ (Hz)</label><div class="input"><input type="number" id="f0" value="800" step="1" min="1" disabled></div></div>
+      <div class="row"><label>decay rate τ (s)</label><div class="input"><input type="number" id="tau" value="0.02" step="0.005" min="0.001" disabled></div></div>
+      <div class="row"><label>shock amplitude A</label><div class="input"><input type="number" id="amp" value="1" step="0.1" disabled></div></div>
+
+      <div class="section">
+        <h3>pulse mode</h3>
+        <div class="row"><label>mode</label><select id="pulseMode" disabled><option value="manual">manual</option><option value="periodic"selected>strict periodic</option></select></div>
+        <div id="manualBox">
+          <canvas id="impulseEditor" class="editor"></canvas>
+          <div class="legend"><span class="inline"><span class="dot primary"></span> click to add</span><span class="inline"><span class="dot gray"></span> Shift/right click to delete</span><span class="inline"><span class="pill">drag to move</span></span></div>
+        </div>
+        <div id="periodicBox" style="display:none">
+          <div class="row"><label>pulses train freq f<sub>p</sub> (Hz)</label><input type="number" id="fp" value="10" step="0.1" min="0.1" disabled></div>
+          <div class="row"><label>shock jitter (period %)</label><input type="number" id="jitterPct" value="2" step="0.5" min="0" disabled></div>
+          <div class="row"><label></label><div class="switch"><input type="checkbox" id="useJitter" checked disabled><span>random jitter</span></div></div>
+          <div class="row"><label></label><button class="btn" id="bakePeriodic" disabled>send to manual mode</button></div>
+        </div>
+      </div>
+
+      <div class="section">
+        <h3>AM envelope</h3>
+        <div class="switch" style="margin-bottom:8px"><input type="checkbox" id="useEnvelope" checked disabled><span>active modulation</span></div>
+        <canvas id="envelopeEditor" class="editor"></canvas>
+        <div class="legend"><span class="inline"><span class="dot green"></span> manual envelope（0~1）</span><span class="pill">double clicks to remove</span></div>
+        <div class="row"><label>active 3 harmonic components</label><div class="switch"><input type="checkbox" id="useHarm" checked disabled><span>3 harmonic components</span></div></div>
+        <div class="row"><label>comp 1 A,f,φ°</label><div class="input"><input type="number" id="s1Amp" value="0.13" step="0.05" disabled><input type="number" id="s1Freq" value="3" step="0.1" disabled><input type="number" id="s1Ph" value="30" step="5" disabled></div></div>
+        <div class="row"><label>comp 2 A,f,φ°</label><div class="input"><input type="number" id="s2Amp" value="0.1" step="0.05" disabled><input type="number" id="s2Freq" value="7" step="0.1" disabled><input type="number" id="s2Ph" value="15" step="5" disabled></div></div>
+        <div class="row"><label>comp 3 A,f,φ°</label><div class="input"><input type="number" id="s3Amp" value="0.07" step="0.05" disabled><input type="number" id="s3Freq" value="5" step="0.1" disabled><input type="number" id="s3Ph" value="40" step="5" disabled></div></div>
+      </div>
+
+      <div class="section">
+        <h3>noise</h3>
+        <div class="row"><label>SNR (dB)</label><input type="number" id="snr" value="5" step="1" disabled></div>
+        <div class="row"><label>distribution</label><select id="noiseDist" disabled><option value="gauss">Gauss</option><option value="laplace">laplace</option><option value="uniform">uniform</option></select></div>
+        <div class="switch"><input type="checkbox" id="addNoise" checked disabled><span>add noise to final signal</span></div>
+      </div>
+
+    </aside>
+
+    <section class="panel">
+      <h3>dashboard</h3>
+      <div class="plots">
+        <div id="plotTime" class="plot"><div class="placeholder">Loading libraries…</div></div>
+        <div id="plotSpec" class="plot"><div class="placeholder">Loading libraries…</div></div>
+
+
+        <!-- STFT 组：图 + 参数 -->
+        <div class="plotGroup">
+            <div id="plotStft" class="plot" style="height:322px"><!-- ... --></div>
+            <div class="section params">
+                <h3>STFT</h3>
+                <div class="row"><label>window length</label><input type="number" id="stftN" value="128" step="2" min="32"></div>
+                <div class="row"><label>hop</label><input type="number" id="stftHop" value="64" step="1" min="1"></div>
+            </div>
+        </div>
+        
+        <!-- 包络谱 组：图 + 参数 -->
+        <div class="plotGroup">
+            <div id="plotEnvSpec" class="plot"><!-- ... --></div>
+            <div class="section params">
+                <h3>envelope spectrum</h3>
+                <div class="row"><label>lo cut-off freq (Hz)</label><input type="number" id="bpLo" value="750" step="1"></div>
+                <div class="row"><label>hi cut-off freq (Hz)</label><input type="number" id="bpHi" value="850" step="1"></div>
+            </div>
+        </div>
+
+        <div id="featurePanel" class="panel" style="grid-column: 1 / -1;">
+            <h3>key features</h3>
+            <div class="kpi kpi-wide">
+                <div class="card">
+                    <div class="label">sample amount N</div>
+                    <div class="value" id="kN">-</div>
+                </div>
+                <div class="card">
+                    <div class="label">mean</div>
+                    <div class="value" id="kMean">-</div>
+                </div>
+                <div class="card">
+                    <div class="label">RMS</div>
+                    <div class="value" id="kRms">-</div>
+                </div>
+                <div class="card">
+                    <div class="label">std</div>
+                    <div class="value" id="kStd">-</div>
+                </div>
+                <div class="card">
+                    <div class="label">peak-peak</div>
+                    <div class="value" id="kP2P">-</div>
+                </div>
+                <div class="card">
+                    <div class="label">max |y|</div>
+                    <div class="value" id="kMaxAbs">-</div>
+                </div>
+                <div class="card">
+                    <div class="label">crest factor</div>
+                    <div class="value" id="kCrest">-</div>
+                </div>
+                <div class="card">
+                    <div class="label">zero-crossing rate (/s)</div>
+                    <div class="value" id="kZcr">-</div>
+                </div>
+                <div class="card">
+                    <div class="label">main freq-peak (Hz)</div>
+                    <div class="value" id="kFpeak">-</div>
+                </div>
+                <div class="card">
+                    <div class="label">spectral centroid (Hz)</div>
+                    <div class="value" id="kCent">-</div>
+                </div>
+                <div class="card">
+                    <div class="label">RMS bandwidth (Hz)</div>
+                    <div class="value" id="kBw">-</div>
+                </div>
+            </div>
+        </div>
+
+
+      </div>
+    </section>
+  </main>
+
+  <footer>© Virtual Lab: Pulse Train. 
+    This project is to quickly illustrate some of the spectral characteristics of mechanical vibration signals, 
+    as well as the importance of performing bandpass–envelope <br> demodulation in addressing cyclostationary processes 
+    (with the ‘random jitter’ function in the demo serving to highlight this point). <br>
+  For further support: Meng ZHANG - DMEC POLIMI <a href="mailto:meng.zhang@polimi.it">Mail</a> / 
+  <a href="https://orcid.org/0000-0002-8543-0303" target="_blank">ORCID</a> / 
+  <a href="https://github.com/MengZ-tech" target="_blank">GitHub</a> / 
+  <a href="https://www.mecc.polimi.it/en/staff/meng.zhang" target="_blank">Page</a>
+  </footer>
+
+<script>
+function loadScript(url){return new Promise((res,rej)=>{const s=document.createElement('script');s.src=url;s.async=true;s.onload=()=>res(url);s.onerror=()=>rej(new Error('Failed: '+url));document.head.appendChild(s);});}
+async function ensureLibraries(){const p=['https://cdn.plot.ly/plotly-2.35.2.min.js','https://cdn.jsdelivr.net/npm/plotly.js-dist-min@2.35.2/plotly.min.js'];if(!window.Plotly){let ok=false,last=null;for(const u of p){try{await loadScript(u);ok=!!window.Plotly;if(ok)break;}catch(e){last=e}}if(!ok)throw last||new Error('Plotly load failed');}}
+const clamp=(x,lo,hi)=>Math.max(lo,Math.min(hi,x));
+const linspace=(a,b,n)=>Array.from({length:n},(_,i)=>a+(b-a)*i/(n-1));
+const hann=n=>Array.from({length:n},(_,i)=>0.5*(1-Math.cos(2*Math.PI*i/(n-1))));
+const rms=arr=>Math.sqrt(arr.reduce((s,v)=>s+v*v,0)/arr.length);
+const p2p=arr=>Math.max(...arr)-Math.min(...arr);
+
+function detrend(arr){
+  const N = arr.length;
+  if (N <= 2) return arr.slice(); // 太短就直接返回拷贝
+  // 居中、缩放后的时间轴：u ∈ [-0.5, 0.5]
+  let Suu = 0, Suy = 0, meanY = 0;
+  for (let i = 0; i < N; i++) meanY += arr[i];
+  meanY /= N;
+
+  for (let i = 0; i < N; i++){
+    const u = (i - (N - 1) / 2) / N; // 居中缩放
+    const y = arr[i] - meanY;        // 先去均值（相当于回归中的截距）
+    Suu += u * u;
+    Suy += u * y;
+  }
+  const b = (Suu > 0) ? (Suy / Suu) : 0; // 斜率
+  const out = new Float64Array(N);
+  for (let i = 0; i < N; i++){
+    const u = (i - (N - 1) / 2) / N;
+    const trend = meanY + b * u;  // 截距（均值）+ 斜率 * u
+    out[i] = arr[i] - trend;      // 去除 DC 和线性趋势
+  }
+  return out;
+}
+
+function download(filename,text){const el=document.createElement('a');el.setAttribute('href','data:text/plain;charset=utf-8,'+encodeURIComponent(text));el.setAttribute('download',filename);el.style.display='none';document.body.appendChild(el);el.click();document.body.removeChild(el);}
+function nextPow2(n){let p=1;while(p<n)p<<=1;return p}
+function fft(re,im,inverse){const n=re.length;let j=0;for(let i=1;i<n;i++){let bit=n>>1;for(;j&bit;bit>>=1)j^=bit;j^=bit;if(i<j){const tr=re[i];re[i]=re[j];re[j]=tr;const ti=im[i];im[i]=im[j];im[j]=ti;}}for(let len=2;len<=n;len<<=1){const ang=(inverse?-2:2)*Math.PI/len;const wlenCos=Math.cos(ang);const wlenSin=Math.sin(ang);for(let i=0;i<n;i+=len){let uCos=1,uSin=0;for(let j=0;j<len/2;j++){const p=i+j;const q=i+j+len/2;const vr=re[q]*uCos-im[q]*uSin;const vi=re[q]*uSin+im[q]*uCos;re[q]=re[p]-vr;im[q]=im[p]-vi;re[p]+=vr;im[p]+=vi;const nuCos=uCos*wlenCos-uSin*wlenSin;uSin=uCos*wlenSin+uSin*wlenCos;uCos=nuCos;}}}if(inverse){for(let i=0;i<n;i++){re[i]/=n;im[i]/=n;}}}
+function smoothMA(a,win){const n=a.length;const w=Math.max(3,win|0);const h=Math.floor(w/2);const ext=new Float64Array(n+2*h);for(let i=0;i<h;i++)ext[i]=a[0];for(let i=0;i<n;i++)ext[h+i]=a[i];for(let i=0;i<h;i++)ext[h+n+i]=a[n-1];let sum=0;for(let i=0;i<w;i++)sum+=ext[i];const out=new Float64Array(n);for(let i=0;i<n;i++){out[i]=sum/w;sum+=ext[i+w]-ext[i];}return out}
+const S={fs:2500,T:2,f0:200,tau:0.02,A:1,pulseMode:'periodic',manualPulses:[],dragging:null,fp:10,useJitter:true,jitterPct:2,useEnvelope:true,useHarm:true,s1Amp:0,s1Freq:1,s1Ph:0,s2Amp:0,s2Freq:2,s2Ph:0,s3Amp:0,s3Freq:3,s3Ph:0,envelopeHand:null,envelope:null,snr:20,addNoise:true,noiseDist:'gauss',stftN:128,stftHop:64,bpLo:150,bpHi:250,N:0,t:[],signalClean:[],signalFinal:[],envSpecFreq:[],envSpecMag:[]};
+const els={};
+function bindEls(){Object.assign(els,{fs:document.getElementById('fs'),duration:document.getElementById('duration'),kN:document.getElementById('kN'),
+kMean:document.getElementById('kMean'),
+kRms:document.getElementById('kRms'),
+kStd:document.getElementById('kStd'),
+kP2P:document.getElementById('kP2P'),
+kMaxAbs:document.getElementById('kMaxAbs'),
+kCrest:document.getElementById('kCrest'),
+kZcr:document.getElementById('kZcr'),
+kFpeak:document.getElementById('kFpeak'),
+kCent:document.getElementById('kCent'),
+kBw:document.getElementById('kBw'),
+f0:document.getElementById('f0'),tau:document.getElementById('tau'),amp:document.getElementById('amp'),pulseMode:document.getElementById('pulseMode'),manualBox:document.getElementById('manualBox'),periodicBox:document.getElementById('periodicBox'),impulseEditor:document.getElementById('impulseEditor'),envelopeEditor:document.getElementById('envelopeEditor'),useHarm:document.getElementById('useHarm'),s1Amp:document.getElementById('s1Amp'),s1Freq:document.getElementById('s1Freq'),s1Ph:document.getElementById('s1Ph'),s2Amp:document.getElementById('s2Amp'),s2Freq:document.getElementById('s2Freq'),s2Ph:document.getElementById('s2Ph'),s3Amp:document.getElementById('s3Amp'),s3Freq:document.getElementById('s3Freq'),s3Ph:document.getElementById('s3Ph'),fp:document.getElementById('fp'),useJitter:document.getElementById('useJitter'),jitterPct:document.getElementById('jitterPct'),useEnvelope:document.getElementById('useEnvelope'),snr:document.getElementById('snr'),noiseDist:document.getElementById('noiseDist'),addNoise:document.getElementById('addNoise'),stftN:document.getElementById('stftN'),stftHop:document.getElementById('stftHop'),bpLo:document.getElementById('bpLo'),bpHi:document.getElementById('bpHi'),btnReset:document.getElementById('btnReset'),btnExport:document.getElementById('btnExport'),kN:document.getElementById('kN'),kRms:document.getElementById('kRms'),kP2P:document.getElementById('kP2P'),testBadge:document.getElementById('testBadge')});}
+let impCtx,envCtx,devicePixelRatioCache=1;let prevDrawIdx=null;
+function resizeCanvas(cnv,h){const r=cnv.getBoundingClientRect();const d=window.devicePixelRatio||1;devicePixelRatioCache=d;cnv.width=Math.round(r.width*d);cnv.height=Math.round((h||r.height)*d);} function timeToX(t){return t/S.T*(els.impulseEditor.width/devicePixelRatioCache)} function xToTime(x){return clamp(x*S.T/(els.impulseEditor.width/devicePixelRatioCache),0,S.T)} function tToIdx(t){return Math.round(t*S.fs)} function idxToT(i){return i/S.fs}
+function drawImpulseEditor(){const cnv=els.impulseEditor;const d=devicePixelRatioCache;const ctx=impCtx;ctx.clearRect(0,0,cnv.width,cnv.height);ctx.fillStyle='#ffffff';ctx.fillRect(0,0,cnv.width,cnv.height);ctx.strokeStyle='#eef2f7';ctx.lineWidth=1*d;ctx.beginPath();const n=10;for(let i=0;i<=n;i++){const x=i/n*cnv.width;ctx.moveTo(x,0);ctx.lineTo(x,cnv.height);}ctx.stroke();const y0=cnv.height-4*d,y1=4*d;ctx.lineWidth=2*d;ctx.strokeStyle='#3b82f6';for(const idx of S.manualPulses){const t=idxToT(idx);const x=timeToX(t)*d;ctx.beginPath();ctx.moveTo(x,y0);ctx.lineTo(x,y1);ctx.stroke();ctx.fillStyle='#3b82f6';ctx.beginPath();ctx.arc(x,(y0+y1)/2,3.5*d,0,Math.PI*2);ctx.fill();}}
+function drawEnvelopeEditor(){const cnv=els.envelopeEditor;const ctx=envCtx;const d=devicePixelRatioCache;ctx.clearRect(0,0,cnv.width,cnv.height);ctx.fillStyle='#ffffff';ctx.fillRect(0,0,cnv.width,cnv.height);ctx.strokeStyle='#eef2f7';ctx.lineWidth=1*d;ctx.beginPath();const n=10;for(let i=0;i<=n;i++){const x=i/n*cnv.width;ctx.moveTo(x,0);ctx.lineTo(x,cnv.height);}for(let i=0;i<=4;i++){const y=i/4*cnv.height;ctx.moveTo(0,y);ctx.lineTo(cnv.width,y);}ctx.stroke();if(!S.envelopeHand||!S.envelope)return;const N=S.envelopeHand.length;const w=cnv.width;const h=cnv.height;ctx.strokeStyle='#a7f3d0';ctx.lineWidth=2*d;ctx.beginPath();for(let i=0;i<N;i++){const x=i/(N-1)*w;const y=(1-S.envelopeHand[i])*h;if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);}ctx.stroke();ctx.strokeStyle='#10b981';ctx.lineWidth=2.5*d;ctx.beginPath();for(let i=0;i<N;i++){const x=i/(N-1)*w;const y=(1-S.envelope[i])*h;if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);}ctx.stroke();}
+function initEditors(){impCtx=els.impulseEditor.getContext('2d');envCtx=els.envelopeEditor.getContext('2d');const resizeAll=()=>{resizeCanvas(els.impulseEditor,90);resizeCanvas(els.envelopeEditor,90);drawImpulseEditor();drawEnvelopeEditor();};window.addEventListener('resize',resizeAll);resizeAll();let draggingIdx=-1,dragActive=false;els.impulseEditor.addEventListener('mousedown',e=>{const r=els.impulseEditor.getBoundingClientRect();const px=(e.clientX-r.left)*(window.devicePixelRatio||1);const t=xToTime(px/(window.devicePixelRatio||1));const idx=tToIdx(t);draggingIdx=-1;const tol=6*(window.devicePixelRatio||1);for(let k=0;k<S.manualPulses.length;k++){const gx=timeToX(idxToT(S.manualPulses[k]))*(window.devicePixelRatio||1);if(Math.abs(gx-px)<tol){draggingIdx=k;break;}}if(draggingIdx>=0){dragActive=true;}else{if(e.shiftKey||e.button===2){if(S.manualPulses.length>0){let best=0,bd=1e9;for(let k=0;k<S.manualPulses.length;k++){const d=Math.abs(S.manualPulses[k]-idx);if(d<bd){bd=d;best=k;}}S.manualPulses.splice(best,1);}}else{S.manualPulses.push(idx);S.manualPulses.sort((a,b)=>a-b);}drawImpulseEditor();recompute();}});els.impulseEditor.addEventListener('mousemove',e=>{if(!dragActive)return;const r=els.impulseEditor.getBoundingClientRect();const px=(e.clientX-r.left)*(window.devicePixelRatio||1);const t=xToTime(px/(window.devicePixelRatio||1));const idx=tToIdx(t);S.manualPulses[draggingIdx]=clamp(idx,0,S.N-1);S.manualPulses.sort((a,b)=>a-b);drawImpulseEditor();recompute();});window.addEventListener('mouseup',()=>{dragActive=false;draggingIdx=-1;});els.impulseEditor.addEventListener('contextmenu',e=>e.preventDefault());let drawing=false;els.envelopeEditor.addEventListener('mousedown',e=>{if(!S.useEnvelope)return;drawing=true;prevDrawIdx=null;drawAt(e.clientX,e.clientY,true);});els.envelopeEditor.addEventListener('mousemove',e=>{if(drawing&&S.useEnvelope)drawAt(e.clientX,e.clientY,false);});window.addEventListener('mouseup',()=>{if(drawing){const win=Math.max(5,Math.round(S.N/200));S.envelopeHand=smoothMA(S.envelopeHand,win);computeEnvelopeCombined();drawEnvelopeEditor();recompute();}drawing=false;prevDrawIdx=null;});els.envelopeEditor.addEventListener('dblclick',()=>{S.envelopeHand=new Float64Array(S.N).fill(0.5);computeEnvelopeCombined();drawEnvelopeEditor();recompute();});}
+function drawAt(clientX,clientY,first){const r=els.envelopeEditor.getBoundingClientRect();const x=clamp(clientX-r.left,0,r.width);const y=clamp(clientY-r.top,0,r.height);const i=Math.round((x/r.width)*(S.N-1));const val=clamp(1-y/r.height,0,1);if(!S.envelopeHand)S.envelopeHand=new Float64Array(S.N).fill(1);if(prevDrawIdx===null)prevDrawIdx=i;const a=prevDrawIdx,b=i;const step=a<=b?1:-1;for(let k=a;k!==b+step;k+=step){const t=(b===a)?1:Math.abs(k-a)/Math.abs(b-a);const w=Math.max(1,Math.round(S.N/400));const v=val*t+(S.envelopeHand[prevDrawIdx]??val)*(1-t);for(let m=k-w;m<=k+w;m++)if(m>=0&&m<S.N){const alpha=1-Math.abs(m-k)/w;S.envelopeHand[m]=clamp(alpha*v+(1-alpha)*S.envelopeHand[m],0,1);} }prevDrawIdx=i;computeEnvelopeCombined();drawEnvelopeEditor();recompute();}
+function buildTimebase(){S.N=Math.max(1,Math.round(S.T*S.fs));S.t=linspace(0,(S.N-1)/S.fs,S.N);if(!S.envelopeHand||S.envelopeHand.length!==S.N)S.envelopeHand=new Float64Array(S.N).fill(0.5);computeEnvelopeCombined();els.kN.textContent=S.N.toLocaleString();}
+function periodicPulses(){const period=1/S.fp;const jitterStd=(S.useJitter?(S.jitterPct/100)*period:0);const pulses=[];for(let t=0;t<=S.T;t+=period){let tt=t+(jitterStd>0?randn()*jitterStd:0);if(tt<0||tt>S.T)continue;pulses.push(tToIdx(tt));}return pulses;}
+function computeEnvelopeCombined(){const env=new Float64Array(S.N);if(!S.useEnvelope){for(let i=0;i<S.N;i++)env[i]=1;S.envelope=env;return;}const p1=S.s1Ph*Math.PI/180,p2=S.s2Ph*Math.PI/180,p3=S.s3Ph*Math.PI/180;for(let i=0;i<S.N;i++){let y=S.envelopeHand?S.envelopeHand[i]:1;y+=S.useHarm?(S.s1Amp*Math.sin(2*Math.PI*S.s1Freq*S.t[i]+p1)+S.s2Amp*Math.sin(2*Math.PI*S.s2Freq*S.t[i]+p2)+S.s3Amp*Math.sin(2*Math.PI*S.s3Freq*S.t[i]+p3)):0;env[i]=clamp(y,0,1);}S.envelope=env;}
+function synthesize(){const x=new Float64Array(S.N);const pulses=(S.pulseMode==='manual')?S.manualPulses:periodicPulses();const A0=S.A;let pulseAmps=new Float64Array(pulses.length).fill(A0);if(S.addPreNoise&&S.preSnr>0){const sigma=A0/Math.pow(10,S.preSnr/20);for(let i=0;i<pulses.length;i++)pulseAmps[i]+=drawNoise(1,'gauss',sigma)[0];}const w0=2*Math.PI*S.f0;const invTau=1/Math.max(1e-6,S.tau);for(let p=0;p<pulses.length;p++){const n0=pulses[p];const A=pulseAmps[p];for(let n=n0;n<S.N;n++){const dt=(n-n0)/S.fs;x[n]+=A*Math.exp(-dt*invTau)*Math.sin(w0*dt);}}if(S.useEnvelope&&S.envelope){for(let i=0;i<S.N;i++)x[i]*=S.envelope[i];}S.signalClean=x;if(S.addNoise&&S.snr>0){const sigR=rms(Array.from(x));const noiseR=sigR/Math.pow(10,S.snr/20);const noise=drawNoise(S.N,S.noiseDist,noiseR);const y=new Float64Array(S.N);for(let i=0;i<S.N;i++)y[i]=x[i]+noise[i];S.signalFinal=y;}else{S.signalFinal=x;}}
+
+function drawAll(){
+  if(!window.Plotly) return;
+
+  const y = Array.from(S.signalFinal);
+
+  // === 特征计算 ===
+  const mu  = mean(y);
+  const rr  = rms(y);
+  const sd  = stddev(y);
+  const pp  = p2p(y);
+  const ma  = maxAbs(y);
+  const cf  = crestFactor(y);
+  const zcr = zeroCrossingRate(y, S.fs);
+  const spec = spectralFeatures(y, S.fs);
+
+  // === 写回 KPI ===
+  els.kN.textContent      = (S.N||0).toLocaleString();
+  els.kMean.textContent   = mu.toFixed(4);
+  els.kRms.textContent    = rr.toFixed(4);
+  els.kStd.textContent    = sd.toFixed(4);
+  els.kP2P.textContent    = pp.toFixed(4);
+  els.kMaxAbs.textContent = ma.toFixed(4);
+  els.kCrest.textContent  = cf.toFixed(4);
+  els.kZcr.textContent    = zcr.toFixed(3);
+  els.kFpeak.textContent  = spec.fPeak.toFixed(1);
+  els.kCent.textContent   = spec.centroid.toFixed(1);
+  els.kBw.textContent     = spec.bw.toFixed(1);
+
+
+
+  // 去掉占位
+  ['plotTime','plotSpec','plotStft','plotEnvSpec'].forEach(id=>{
+    const ph = document.querySelector(`#${id} .placeholder`);
+    if(ph) ph.remove();
+  });
+
+  // 时域
+  Plotly.newPlot('plotTime', [{
+    x: S.t,
+    y: Array.from(S.signalFinal),
+    type: 'scatter',
+    mode: 'lines',
+    line: { width: 1.5, color: '#111' },
+    name: 'y(t)'
+  }], {
+    margin: { l: 40, r: 10, t: 20, b: 40 },
+    paper_bgcolor: '#fff',
+    plot_bgcolor: '#fff',
+    xaxis: { title: 'Time (s)', gridcolor: '#eee' },
+    yaxis: { title: 'Amplitude', gridcolor: '#eee' }
+  }, { displayModeBar: false, responsive: true });
+
+  // 幅度谱
+  const sp = spectrum(S.signalFinal, S.fs);
+  Plotly.newPlot('plotSpec', [{
+    x: sp.freq,
+    y: sp.mag,
+    type: 'scatter',
+    mode: 'lines',
+    line: { width: 1.4 },
+    name: '|X(f)|'
+  }], {
+    margin: { l: 50, r: 10, t: 20, b: 40 },
+    xaxis: { title: 'Frequency (Hz)', gridcolor: '#eee' },
+    yaxis: { title: 'Magnitude', gridcolor: '#eee' },
+    paper_bgcolor: '#fff',
+    plot_bgcolor: '#fff'
+  }, { displayModeBar: false, responsive: true });
+
+  // STFT
+  const Sxx = stftMag(S.signalFinal, S.fs, S.stftN, S.stftHop);
+  Plotly.newPlot('plotStft', [{
+    z: Sxx.magDB,
+    x: Sxx.times,
+    y: Sxx.freqs,
+    type: 'heatmap',
+    colorscale: 'YlGnBu'
+  }], {
+    margin: { l: 60, r: 10, t: 20, b: 40 },
+    xaxis: { title: 'Time (s)' },
+    yaxis: { title: 'Freq (Hz)' },
+    paper_bgcolor: '#fff',
+    plot_bgcolor: '#fff'
+  }, { displayModeBar: false, responsive: true });
+
+  // —— 自动计算并绘制包络谱 ——
+  const lo = Math.min(S.bpLo, S.bpHi);
+  const hi = Math.max(S.bpLo, S.bpHi);
+  const esp = envelopeSpectrum(S.signalFinal, S.fs, lo, hi);
+
+  // 缓存到状态（若有导出等需求可用）
+  S.envSpecFreq = esp.freq;
+  S.envSpecMag  = esp.mag;
+
+  Plotly.newPlot('plotEnvSpec', [{
+    x: esp.freq,
+    y: esp.mag,
+    type: 'scatter',
+    mode: 'lines'
+  }], {
+    margin: { l: 50, r: 10, t: 20, b: 40 },
+    xaxis: { 
+      title: 'Frequency (Hz)', 
+      gridcolor: '#eee',
+      range: [0, S.fs / 18]   // 限制频率轴到最大频率的 1/4
+    },
+    yaxis: { 
+      title: 'Envelope Spectrum', 
+      gridcolor: '#eee' 
+    },
+    paper_bgcolor: '#fff',
+    plot_bgcolor: '#fff'
+  }, { displayModeBar: false, responsive: true });
+
+}
+
+
+function mean(arr){ let s=0; for(const v of arr) s+=v; return s/arr.length; }
+function stddev(arr){ const m=mean(arr); let s=0; for(const v of arr) s+=(v-m)*(v-m); return Math.sqrt(s/arr.length); }
+function maxAbs(arr){ let m=0; for(const v of arr){ const a=Math.abs(v); if(a>m) m=a; } return m; }
+function crestFactor(arr){ const r=rms(arr); return r>0 ? maxAbs(arr)/r : 0; }
+function zeroCrossingRate(arr, fs){
+  let c=0, prev=arr[0];
+  for(let i=1;i<arr.length;i++){
+    const cur=arr[i];
+    if((prev>0 && cur<0) || (prev<0 && cur>0)) c++;
+    prev=cur;
+  }
+  const dur = arr.length/fs;
+  return dur>0 ? c/dur : 0;
+}
+function spectralFeatures(arr, fs){
+  const sp = spectrum(arr, fs);           // 返回 {freq, mag}
+  const f = sp.freq, m = sp.mag;
+  // 主峰频率
+  let kMax=0; for(let i=1;i<m.length;i++) if(m[i]>m[kMax]) kMax=i;
+  const fPeak = f[kMax]||0;
+  // 质心与 RMS 带宽（功率加权）
+  let wSum=0, wfSum=0, wf2Sum=0;
+  for(let i=0;i<m.length;i++){
+    const w = m[i]*m[i];     // 用功率权重
+    wSum += w; wfSum += w*f[i]; wf2Sum += w*f[i]*f[i];
+  }
+  const centroid = wSum>0 ? wfSum/wSum : 0;
+  const bw = wSum>0 ? Math.sqrt(Math.max(0, wf2Sum/wSum - centroid*centroid)) : 0;
+  return { fPeak, centroid, bw };
+}
+
+function spectrum(x,fs){const N=x.length;const fftN=nextPow2(N);const re=new Float64Array(fftN);const im=new Float64Array(fftN);for(let i=0;i<N;i++)re[i]=x[i];fft(re,im,false);const mags=new Float64Array(fftN/2);for(let k=0;k<fftN/2;k++){const a=re[k],b=im[k];mags[k]=2*Math.hypot(a,b)/fftN;}const freq=Float64Array.from({length:fftN/2},(_,k)=>k*fs/fftN);return{freq:Array.from(freq),mag:Array.from(mags)};}
+function stftMag(x,fs,winN,hop){winN=Math.max(16,Math.min(winN,x.length));hop=Math.max(1,hop);const fftN=nextPow2(winN);const win=hann(winN);const times=[];const freqs=Float64Array.from({length:Math.floor(fftN/2)},(_,k)=>k*fs/fftN);const nFrames=Math.max(1,Math.floor((x.length-winN)/hop)+1);const Z=Array.from({length:freqs.length},()=>new Float64Array(nFrames));for(let m=0;m<nFrames;m++){const off=m*hop;const re=new Float64Array(fftN);const im=new Float64Array(fftN);for(let i=0;i<winN;i++){re[i]=(x[off+i]||0)*win[i];}fft(re,im,false);for(let k=0;k<freqs.length;k++){const mag=2*Math.hypot(re[k],im[k])/fftN;Z[k][m]=20*Math.log10(mag+1e-12);}times.push(off/fs);}return{times,freqs:Array.from(freqs),magDB:Z};}
+function idealBandpassFFT(x,fs,lo,hi){const N=x.length;const fftN=nextPow2(N);const re=new Float64Array(fftN);const im=new Float64Array(fftN);for(let i=0;i<N;i++)re[i]=x[i];fft(re,im,false);const df=fs/fftN;const kLo=Math.round(Math.min(lo,hi)/df),kHi=Math.round(Math.max(lo,hi)/df);for(let k=0;k<fftN;k++){const keep=(k>=kLo&&k<=kHi)||(k>=fftN-kHi&&k<=fftN-kLo);if(!keep){re[k]=0;im[k]=0;}}fft(re,im,true);const y=new Float64Array(N);for(let i=0;i<N;i++)y[i]=re[i];return y;}
+function analyticSignal(x){const N=x.length;const fftN=nextPow2(N);const re=new Float64Array(fftN);const im=new Float64Array(fftN);for(let i=0;i<N;i++)re[i]=x[i];fft(re,im,false);const N2=Math.floor(fftN/2);for(let k=1;k<N2;k++){re[k]*=2;im[k]*=2;}for(let k=N2+1;k<fftN;k++){re[k]=0;im[k]=0;}fft(re,im,true);const zr=new Float64Array(N),zi=new Float64Array(N);for(let i=0;i<N;i++){zr[i]=re[i];zi[i]=im[i];}return{zr,zi};}
+
+function envelopeSpectrum(x, fs, lo, hi){
+  const xbp = idealBandpassFFT(x, fs, lo, hi);
+  const z = analyticSignal(xbp);
+  const env = new Float64Array(z.zr.length);
+  for (let i = 0; i < env.length; i++) env[i] = Math.hypot(z.zr[i], z.zi[i]);
+  const envDT = detrend(env);
+  // window
+  // const w = hann(envDT.length);
+  // for (let i = 0; i < envDT.length; i++) envDT[i] *= w[i];
+  return spectrum(envDT, fs);
+}
+
+function randn(){let u=0,v=0;while(u===0)u=Math.random();while(v===0)v=Math.random();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);} function randLaplace(){const u=Math.random()-0.5;return -Math.sign(u)*Math.log(1-2*Math.abs(u));}
+function drawNoise(N,dist,targetRms){const out=new Float64Array(N);if(targetRms<=0)return out;for(let i=0;i<N;i++){let r;if(dist==='gauss')r=randn();else if(dist==='laplace')r=randLaplace();else r=2*Math.random()-1;out[i]=r;}const rr=rms(Array.from(out));const s=(rr>0)?targetRms/rr:0;for(let i=0;i<N;i++)out[i]*=s;return out;}
+function recompute(){buildTimebase();synthesize();drawAll();}
+function readUI(){S.fs=parseFloat(els.fs.value)||2500;S.T=parseFloat(els.duration.value)||3;S.f0=parseFloat(els.f0.value)||120;S.tau=parseFloat(els.tau.value)||0.05;S.A=parseFloat(els.amp.value)||1;S.pulseMode=els.pulseMode.value;S.fp=parseFloat(els.fp.value)||10;S.useJitter=els.useJitter.checked;S.jitterPct=parseFloat(els.jitterPct.value)||0;S.useEnvelope=els.useEnvelope.checked;S.useHarm=els.useHarm.checked;S.s1Amp=parseFloat(els.s1Amp.value)||0;S.s1Freq=parseFloat(els.s1Freq.value)||0;S.s1Ph=parseFloat(els.s1Ph.value)||0;S.s2Amp=parseFloat(els.s2Amp.value)||0;S.s2Freq=parseFloat(els.s2Freq.value)||0;S.s2Ph=parseFloat(els.s2Ph.value)||0;S.s3Amp=parseFloat(els.s3Amp.value)||0;S.s3Freq=parseFloat(els.s3Freq.value)||0;S.s3Ph=parseFloat(els.s3Ph.value)||0;S.snr=parseFloat(els.snr.value)||0;S.noiseDist=els.noiseDist.value;S.addNoise=els.addNoise.checked;S.stftN=parseInt(els.stftN.value)||256;S.stftHop=parseInt(els.stftHop.value)||128;S.bpLo=parseFloat(els.bpLo.value)||80;S.bpHi=parseFloat(els.bpHi.value)||200;els.manualBox.style.display=(S.pulseMode==='manual')?'':'none';els.periodicBox.style.display=(S.pulseMode==='periodic')?'':'none';computeEnvelopeCombined();}
+function bindUI(){const inputs=[els.fs,els.duration,els.f0,els.tau,els.amp,els.pulseMode,els.fp,els.useJitter,els.jitterPct,els.useEnvelope,els.useHarm,els.s1Amp,els.s1Freq,els.s1Ph,els.s2Amp,els.s2Freq,els.s2Ph,els.s3Amp,els.s3Freq,els.s3Ph,els.snr,els.noiseDist,els.addNoise,els.stftN,els.stftHop];inputs.forEach(el=> el.addEventListener('input', ()=>{ readUI(); recompute(); drawEnvelopeEditor(); }));els.bpLo.addEventListener('input', ()=>{ S.bpLo = parseFloat(els.bpLo.value)||80; });els.bpHi.addEventListener('input', ()=>{ S.bpHi = parseFloat(els.bpHi.value)||200; });document.getElementById('bakePeriodic').addEventListener('click', ()=>{S.manualPulses=periodicPulses();els.pulseMode.value='manual';readUI();drawImpulseEditor();recompute();});}
+function runSelfTests(){const results=[];const ok=(n,c)=>results.push({name:n,pass:!!c});ok('Plotly present',!!window.Plotly&&typeof Plotly.newPlot==='function');const sp=spectrum(new Float64Array([1,0,0,0,0,0,0,0]),8);ok('Spectrum length',Array.isArray(sp.mag)&&sp.mag.length===4);const st=stftMag(new Float64Array(512).fill(0).map((_,i)=>Math.sin(2*Math.PI*10*i/256)),256,128,64);ok('STFT shape',st.freqs.length===64&&st.times.length>0);const envSp=envelopeSpectrum(new Float64Array(1024).fill(0).map((_,i)=>Math.sin(2*Math.PI*60*i/1024)),1024,50,70);ok('Envelope spectrum freq size',envSp.freq.length>10);const pass=results.every(r=>r.pass);console.table(results);els.testBadge.textContent=pass?'Tests: passed':'Tests: check console';els.testBadge.style.color=pass?'#065f46':'#92400e';els.testBadge.style.borderColor=pass?'#d1fae5':'#fcd34d';}
+async function boot(){try{bindEls();document.querySelectorAll('input,select,button').forEach(el=>el.disabled=true);await ensureLibraries();document.querySelectorAll('input,select,button').forEach(el=>el.disabled=false);document.getElementById('controls').setAttribute('aria-busy','false');readUI();buildTimebase();const P=Math.floor(S.T*10);const step=Math.max(1,Math.round(S.N/(P+2)));S.manualPulses=[];for(let k=1;k<=P;k++){const idx=k*step;if(idx<S.N)S.manualPulses.push(idx);}initEditors();drawImpulseEditor();drawEnvelopeEditor();bindUI();synthesize();drawAll();runSelfTests();}catch(err){console.error(err);['plotTime','plotSpec','plotStft'].forEach(id=>{const box=document.getElementById(id);const ph=box.querySelector('.placeholder')||Object.assign(document.createElement('div'),{className:'placeholder'});ph.textContent='依赖库加载失败：'+err.message;box.appendChild(ph);});els.testBadge.textContent='Tests: failed to load libs';els.testBadge.style.color='#991b1b';els.testBadge.style.borderColor='#fecaca';}}
+boot();
+</script>
+</body>
+</html>
+
+
