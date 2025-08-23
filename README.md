@@ -84,3 +84,13 @@
 - Start with a **simple periodic impulse train**, then add an envelope to watch **sidebands** emerge.
 - Another thing I want to mention is to illustrate how the shock arrival time (or, would you call it Uncertainty?) influences the Fourier spectrum (which is quite a common case in the real world). Use "random jitter (of the shock arrival time)" button to see the effect on FFT results, but also be aware that this "random jitter" may not be the most accurate model when it comes to components like bearings. check: FDS-MOMEDA: optimization-blind deconvolution in finite high-dimensional spaces for extracting pulse signal in rolling bearing fault diagnosis. Measurement Science and Technology, 35(8), 086140. https://doi.org/10.1088/1361-6501/ad4dcb
 
+---
+
+---
+
+## Write to me:
+
+<p align="center">
+  📧 <a href="mailto:meng.zhang@polimi.it">meng.zhang@polimi.it</a>
+</p>
+
