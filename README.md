@@ -88,7 +88,7 @@
 
 ---
 
-## Write to me:
+## write to me:
 
 <p align="center">
   📧 <a href="mailto:meng.zhang@polimi.it">meng.zhang@polimi.it</a>
