@@ -1,6 +1,6 @@
 # Virtual-Vibration-Lab
 
-> ⚙️ Make the time-domain signal as you wish, and **see what happens in the frequency domain**.
+> ⚙️ Make the time-domain mechanical vibration signal as you wish, and **see what happens in the frequency domain**.
 
 <p align="center">
   <a href="https://mengz-tech.github.io/Virtual-Vibration-Lab/">
