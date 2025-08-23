@@ -65,7 +65,7 @@
 
 ### Random shock-arrival jitter → FFT effects
 <p align="center">
-  <img alt="jitter-1" src="[https://github.com/user-attachments/assets/3c0b16bb-e8b3-4eaa-821a-47c3702360b7](https://github.com/user-attachments/assets/db02293c-6a44-4ed2-a860-619156792368)" width="80%">
+  <img alt="jitter-1" src="https://github.com/user-attachments/assets/db02293c-6a44-4ed2-a860-619156792368" width="40%">
   
 
 
