@@ -3,6 +3,7 @@ make the time-domain signal change as you want, and see what is going on in freq
 <img width="1899" height="935" alt="image" src="https://github.com/user-attachments/assets/38a6ca36-9783-4d89-9832-5bece07f66e8" />
 
 Create your own envelope shape - yea you can even draw it
+
 ![env](https://github.com/user-attachments/assets/4611c76c-3e93-4aab-90ea-72f8df0538b1)
 
 Another thing I would like to mention is to illustrate how the shock arrival time (or, would you call it Uncertainty?) influences the Fourier spectrum (which is quite a common case in the real world). Be aware that the "random jitter" may not be the most accurate case when it comes to the components like bearings. check: FDS-MOMEDA: optimization-blind deconvolution in finite high-dimensional spaces for extracting pulse signal in rolling bearing fault diagnosis. Measurement Science and Technology, 35(8), 086140. https://doi.org/10.1088/1361-6501/ad4dcb
