@@ -13,7 +13,6 @@
   <a href="#features">Features</a> ·
   <a href="#how-it-works">How it works</a> ·
   <a href="#gallery">Gallery</a> ·
-  <a href="#references">References</a>
 </p>
 
 <p align="center">
@@ -27,9 +26,9 @@
 
 ## Features
 
-- 🎛️ **Direct control** of impulses, carriers, envelopes, and noise.
+- 🎛️ **Direct control** of impulses, carriers, and envelopes.
 - ✏️ **Draw your own envelope** and see spectrum changes in real time.
-- 📡 **Random shock-arrival jitter** to visualize spectral broadening / smearing.
+- 📡 **Random shock-arrival jitter** to visualize spectral smearing.
 - 🧭 **Compare** time vs. (envelope) spectrum side-by-side.
 
 ---
@@ -48,7 +47,7 @@
 - Envelope can be parametric **or** hand-drawn.
 - FFT of the raw signal shows harmonic content;  
   FFT of the **envelope / demodulated** signal highlights modulation and sidebands.
-- **Shock-arrival jitter** perturbs event times → frequency-domain **broadening**.
+- **Shock-arrival jitter** perturbs event times → frequency-domain effects.
 
 ---
 
@@ -67,7 +66,9 @@
 ### Random shock-arrival jitter → FFT effects
 <p align="center">
   <img alt="jitter-1" src="https://github.com/user-attachments/assets/3c0b16bb-e8b3-4eaa-821a-47c3702360b7" width="80%">
-  ![1](https://github.com/user-attachments/assets/44b69f7d-febc-4640-aacf-619241a66f33)
+  
+![1](https://github.com/user-attachments/assets/db02293c-6a44-4ed2-a860-619156792368)
+
 
 </p>
 <p align="center">
