@@ -16,7 +16,7 @@
 </p>
 
 <p align="center">
-  <img alt="Static Badge" src="https://img.shields.io/badge/ - -blue">
+  <img alt="Static Badge" src="https://img.shields.io/badge/ - -red">
   <img alt="Static Badge" src="https://img.shields.io/badge/ - -informational">
   <img alt="Static Badge" src="https://img.shields.io/badge/ - -success">
   <img alt="Static Badge" src="https://img.shields.io/badge/ - -lightgrey">
