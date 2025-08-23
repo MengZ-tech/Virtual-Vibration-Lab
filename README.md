@@ -16,10 +16,10 @@
 </p>
 
 <p align="center">
-  <img alt="Static Badge" src="https://img.shields.io/badge/Signals-Vibration-blue">
-  <img alt="Static Badge" src="https://img.shields.io/badge/FFT-Analysis-informational">
-  <img alt="Static Badge" src="https://img.shields.io/badge/Envelope-Demodulation-success">
-  <img alt="Static Badge" src="https://img.shields.io/badge/License-MIT-lightgrey">
+  <img alt="Static Badge" src="https://img.shields.io/badge/ - -blue">
+  <img alt="Static Badge" src="https://img.shields.io/badge/ - -informational">
+  <img alt="Static Badge" src="https://img.shields.io/badge/ - -success">
+  <img alt="Static Badge" src="https://img.shields.io/badge/ - -lightgrey">
 </p>
 
 ---
