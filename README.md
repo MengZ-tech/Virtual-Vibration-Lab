@@ -12,7 +12,7 @@
   <a href="https://mengz-tech.github.io/Virtual-Vibration-Lab/">Live Demo</a> ·
   <a href="#features">Features</a> ·
   <a href="#how-it-works">How it works</a> ·
-  <a href="#gallery">Gallery</a> ·
+  <a href="#gallery">Gallery</a> 
 </p>
 
 <p align="center">
