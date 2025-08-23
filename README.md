@@ -91,6 +91,6 @@
 ## write to me:
 
 <p align="left">
-  📧 <a href="mailto:meng.zhang@polimi.it">meng.zhang@polimi.it</a>
+  > 📧 <a href="mailto:meng.zhang@polimi.it">meng.zhang@polimi.it</a>
 </p>
 
