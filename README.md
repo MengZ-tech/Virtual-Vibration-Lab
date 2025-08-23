@@ -90,7 +90,7 @@
 
 ## write to me:
 
-<p align="center">
+<p align="left">
   📧 <a href="mailto:meng.zhang@polimi.it">meng.zhang@polimi.it</a>
 </p>
 
