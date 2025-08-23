@@ -55,7 +55,7 @@
 
 ### Create your own envelope — draw it and observe spectral impact
 <p align="center">
-  <img alt="env" src="https://github.com/user-attachments/assets/4611c76c-3e93-4aab-90ea-72f8df0538b1" width="40%">
+  <img alt="env" src="https://github.com/user-attachments/assets/4611c76c-3e93-4aab-90ea-72f8df0538b1" width="30%">
 </p>
 
 ### Sidebands from envelope modulation
@@ -65,7 +65,7 @@
 
 ### Random shock-arrival jitter → FFT effects
 <p align="center">
-  <img alt="jitter-1" src="https://github.com/user-attachments/assets/db02293c-6a44-4ed2-a860-619156792368" width="40%">
+  <img alt="jitter-1" src="https://github.com/user-attachments/assets/db02293c-6a44-4ed2-a860-619156792368" width="30%">
   
 
 
